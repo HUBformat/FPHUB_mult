@@ -28,35 +28,35 @@ module tb_multHUB;
     X = 32'b0_10000001_01000000000000000000000; // 2.5 en formato con sesgo 128 (exponente: 1 + 128 = 129)
     Y = 32'b0_10000001_10011001100110011001101; // 3.2 en formato con sesgo 128 (exponente: 1 + 128 = 129)
     #10;
-    $display("Caso 1: 2.5 * 3.2 = %0.6f (%s)", $bitstoshortreal(Z), format_ieee(Z));
+    $display("Caso 1: 2.5 * 3.2 = %0.6f (%s)", $bitstoshortreal(Z)/2, format_ieee(Z));
     $display("Se espera 8");
 
     // Caso 2: 1.25 * 4.0 = 5.0
     X = 32'b0_10000000_01000000000000000000000; // 1.25 en formato con sesgo 128 (exponente: 0 + 128 = 128)
     Y = 32'b0_10000010_00000000000000000000000; // 4.0 en formato con sesgo 128 (exponente: 2 + 128 = 130)
     #10;
-    $display("Caso 2: 1.25 * 4.0 = %0.6f (%b %b %b)", $bitstoshortreal(Z), Z[31], Z[30:23], Z[22:0]);
+    $display("Caso 2: 1.25 * 4.0 = %0.6f (%b %b %b)", $bitstoshortreal(Z)/2, Z[31], Z[30:23], Z[22:0]);
     $display("Se espera 5");
 
     // Caso 3: 0.75 * 0.75 = 0.5625
     X = 32'b0_01111111_10000000000000000000000; // 0.75 en formato con sesgo 128 (exponente: -1 + 128 = 127)
     Y = 32'b0_01111111_10000000000000000000000; // 0.75 en formato con sesgo 128 (exponente: -1 + 128 = 127)
     #10;
-    $display("Caso 3: 0.75 * 0.75 = %0.6f (%s)", $bitstoshortreal(Z), format_ieee(Z));
+    $display("Caso 3: 0.75 * 0.75 = %0.6f (%s)", $bitstoshortreal(Z)/2, format_ieee(Z));
     $display("Se espera 0.5625");
 
     // Caso 4: 123.456 * 0.001 = 0.123456
     X = 32'b0_10000110_11101101110100101111001; // 123.456 en formato con sesgo 128 (exponente: 6 + 128 = 134)
     Y = 32'b0_01110110_00000110001001001101110; // 0.001 en formato con sesgo 128 (exponente: -10 + 128 = 118)
     #10;
-    $display("Caso 4: 123.456 * 0.001 = %0.6f (%s)", $bitstoshortreal(Z), format_ieee(Z));
+    $display("Caso 4: 123.456 * 0.001 = %0.6f (%s)", $bitstoshortreal(Z)/2, format_ieee(Z));
     $display("Se espera 0.123456");
 
     // Caso 5: -2.0 * 3.0 = -6.0
     X = 32'b1_10000001_00000000000000000000000; // -2.0 en formato con sesgo 128 (exponente: 1 + 128 = 129)
     Y = 32'b0_10000001_10000000000000000000000; // 3.0 en formato con sesgo 128 (exponente: 2 + 128 = 130)
     #10;
-    $display("Caso 5: -2.0 * 3.0 = %0.6f (%s)", $bitstoshortreal(Z), format_ieee(Z));
+    $display("Caso 5: -2.0 * 3.0 = %0.6f (%s)", $bitstoshortreal(Z)/2, format_ieee(Z));
     $display("Se espera -6");
 
     // Caso 6: 1.5 * 2.5 = 3.75
@@ -93,8 +93,59 @@ module tb_multHUB;
     #10;
     $display("Caso 10: 3.141592 * 2.718281 = %0.6f (%s)", $bitstoshortreal(Z), format_ieee(Z));
     $display("Se espera 8.539734");
+    
+    //---------------------------------------------------------
+    // Casos especiales
+    //---------------------------------------------------------
+    $display("---------------------------------------------------------");
+    $display("Casos especiales");
+    $display("---------------------------------------------------------");
+    
+        // Caso 1: inf * 3.0 = inf
+    X = 32'b0_11111111_11111111111111111111111; // inf
+    Y = 32'b0_10000001_10000000000000000000000; // 3.0
+    #10;
+    $display("Caso 1: inf * 3.0 = %b (Esperado: inf)", format_ieee(Z));
+
+    // Caso 2: -inf * -2.5 = inf
+    X = 32'b1_11111111_11111111111111111111111; // -inf
+    Y = 32'b1_10000001_01000000000000000000000; // -2.5
+    #10;
+    $display("Caso 2: -inf * -2.5 = %b (Esperado: inf)", format_ieee(Z));
+
+    // Caso 3: 0 * 5.0 = 0
+    X = 32'b0_00000000_00000000000000000000000; // +0
+    Y = 32'b0_10000001_01000000000000000000000; // 5.0
+    #10;
+    $display("Caso 3: 0 * 5.0 = %b (Esperado: 0)", format_ieee(Z));
+
+    // Caso 4: -1 * 7.25 = -7.25
+    X = 32'b1_10000000_00000000000000000000000; // -1
+    Y = 32'b0_10000010_11010000000000000000000; // 7.25
+    #10;
+    $display("Caso 4: -1 * 7.25 = %b (Esperado: -7.25)", format_ieee(Z));
+
+    // Caso 5: 1 * -4.5 = -4.5
+    X = 32'b0_10000000_00000000000000000000000; // +1
+    Y = 32'b1_10000010_00100000000000000000000; // -4.5
+    #10;
+    $display("Caso 5: 1 * -4.5 = %b (Esperado: -4.5)", format_ieee(Z));
+
+    // Caso 6: -inf * 0 = NaN (pero aquí lo manejamos como 0 según el módulo)
+    X = 32'b1_11111111_11111111111111111111111; // -inf
+    Y = 32'b0_00000000_00000000000000000000000; // +0
+    #10;
+    $display("Caso 6: -inf * 0 = %b (Esperado: 0 o NaN, según implementación)", format_ieee(Z));
+
+    // Caso 7: 0 * inf = NaN (pero aquí lo manejamos como 0 según el módulo)
+    X = 32'b0_00000000_00000000000000000000000; // +0
+    Y = 32'b0_11111111_11111111111111111111111; // inf
+    #10;
+    $display("Caso 7: 0 * inf = %b (Esperado: 0 o NaN, según implementación)", format_ieee(Z));
+
 
     // Finalizar la simulación
     $finish;
   end
+
 endmodule
