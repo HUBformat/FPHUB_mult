@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("mul",["Variable","Section"],[["multfull",,[[,,,,0,"File:FPHUB_mult.sv:multfull"]]],["Multiplication",,[[,"Mantissa Multiplication and Normalization",,,1,"File:FPHUB_mult.sv:Mantissa_Multiplication_and_Normalization"]]]]);

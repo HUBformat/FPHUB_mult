@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("det",["Section"],[["Detection",,[[,"Detection of special cases",,,0,"File:special_cases_detector.sv:Detection_of_special_cases"],[,"Special Case Detection",,,0,"File:FPHUB_mult.sv:Special_Case_Detection"]]]]);

@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("han",["Section"],[["Handling",,[[,"Special Case Handling Logic",,,0,"File:special_result_for_multiplier.sv:Special_Case_Handling_Logic"]]]]);

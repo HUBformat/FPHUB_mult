@@ -1,0 +1,1 @@
+﻿NDMenu.OnSectionLoaded("modules.js",[[1,"FPHUB_mult"],[1,"special_cases_detector"],[1,"special_result_for_multiplier"]]);

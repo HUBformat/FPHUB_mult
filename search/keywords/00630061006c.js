@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("cal",["Section"],[["Calculation",,[[,"Exponent Calculation",,,0,"File:FPHUB_mult.sv:Exponent_Calculation"],[,"Sign Calculation",,,0,"File:FPHUB_mult.sv:Sign_Calculation"]]]]);

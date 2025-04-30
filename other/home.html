@@ -1,0 +1,132 @@
+﻿<link rel="stylesheet" href="../styles/main.css" type="text/css">
+<h1 class="CTitle" id="fphub_mult">FPHUB_mult</h1>
+<h2 class="CHeading" id="overview">Overview</h2>
+<p><code>FPHUB_mult</code> is a floating-point multiplier implemented
+using the custom HUB format.<br />
+It computes <strong>Z = X × Y</strong> using a simple combinational
+architecture and handles special cases such as ±zero, ±infinity, and
+±one.</p>
+<p>The module is designed to provide a normalized and rounded result in
+HUB format and is compatible with downstream modules like FPHUB_adder or
+FPHUB_FMA.</p>
+<hr />
+<h2 class="CHeading" id="hub-format">HUB Format</h2>
+<p>Each operand follows the HUB floating-point layout:</p>
+<ul>
+<li>1-bit <strong>sign</strong></li>
+<li>E-bit <strong>exponent</strong> (with a bias of
+2<sup>E-1</sup>)</li>
+<li>M-bit <strong>mantissa</strong> (excluding the implicit leading
+1)</li>
+</ul>
+<p>Subnormal numbers are not supported in this format.</p>
+<hr />
+<h2 class="CHeading" id="key-features">Key Features</h2>
+<ul>
+<li><strong>Full Mantissa Multiplication</strong>: Computes a wide
+(2×(M+2)) mantissa product.</li>
+<li><strong>Normalization</strong>: Adjusts the exponent and mantissa if
+the result overflows by one bit.</li>
+<li><strong>Special Case Handling</strong>: Predefined behavior for
+±infinity, ±zero, and ±one inputs.</li>
+<li><strong>Compact Output</strong>: The result is formatted back to
+standard HUB layout.</li>
+</ul>
+<hr />
+<h2 class="CHeading" id="ports">Ports</h2>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 13%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Direction</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>X</td>
+<td>Input</td>
+<td>First operand (HUB format)</td>
+</tr>
+<tr class="even">
+<td>Y</td>
+<td>Input</td>
+<td>Second operand (HUB format)</td>
+</tr>
+<tr class="odd">
+<td>Z</td>
+<td>Output</td>
+<td>Result of X × Y in HUB format</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 class="CHeading" id="internal-process">Internal Process</h2>
+<ol type="1">
+<li><p><strong>Special Case Detection</strong><br />
+Uses the <code>special_cases_detector</code> and
+<code>special_result_for_multiplier</code> modules to detect if either
+operand is a special value.<br />
+If so, the output is overridden with the corresponding result.</p></li>
+<li><p><strong>Sign Calculation</strong><br />
+The output sign is the XOR of the input signs.</p></li>
+<li><p><strong>Exponent Calculation</strong><br />
+The exponents are added and corrected by subtracting the bias
+(2<sup>E-1</sup>), following standard floating-point logic.</p></li>
+<li><p><strong>Mantissa Multiplication</strong><br />
+Both mantissas are extended by:</p>
+<ul>
+<li>A leading 1 (implicit bit)</li>
+<li>A trailing 1 (rounding support)</li>
+</ul>
+<p>The product is stored in a wide register and normalized
+accordingly.</p></li>
+<li><p><strong>Rounding and Normalization</strong><br />
+If the product overflows into an extra bit, the exponent is incremented
+and the mantissa is right-shifted to normalize.</p></li>
+</ol>
+<hr />
+<h2 class="CHeading" id="usage">Usage</h2>
+<p>Instantiate with the desired mantissa and exponent widths:</p>
+<div class="CTopic">
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode systemverilog CCode"><code class="sourceCode systemverilog"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>FPHUB_mult #(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    .M(<span class="dv">23</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    .E(<span class="dv">8</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>) multiplier (</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    .X(X_in),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    .Y(Y_in),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    .Z(Z_out)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>);</span></code></pre></div>
+</div>
+<ul>
+<li>The default configuration corresponds to 32-bit floating-point
+format: 1 + 8 + 23.</li>
+</ul>
+<hr />
+<h2 class="CHeading" id="example">Example</h2>
+<div class="CTopic">
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode verilog CCode"><code class="sourceCode verilog"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Example input: X = +2.0, Y = -1.5</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Expected output: Z = -3.0</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>logic <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> X <span class="op">=</span> <span class="bn">32&#39;b01000000000000000000000000000000</span><span class="op">;</span> <span class="co">// +2</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>logic <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> Y <span class="op">=</span> <span class="bn">32&#39;b11000000010000000000000000000000</span><span class="op">;</span> <span class="co">// -1.5</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>logic <span class="op">[</span><span class="dv">31</span><span class="op">:</span><span class="dv">0</span><span class="op">]</span> Z<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>FPHUB_mult #<span class="op">(</span><span class="dv">23</span><span class="op">,</span> <span class="dv">8</span><span class="op">)</span> uut <span class="op">(</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    .X<span class="op">(</span>X<span class="op">),</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    .Y<span class="op">(</span>Y<span class="op">),</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    .Z<span class="op">(</span>Z<span class="op">)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+</div>
+<hr />
+<h2 class="CHeading" id="license">License</h2>
+<p>This module is provided for educational and research purposes.<br />
+You are free to modify, adapt, and integrate it into your own
+designs.</p>

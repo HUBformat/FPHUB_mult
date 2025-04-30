@@ -1,0 +1,1 @@
+﻿NDSearch.OnPrefixDataLoaded("exp",["Section","Variable"],[["Exponent",,[[,"Exponent Calculation",,,0,"File:FPHUB_mult.sv:Exponent_Calculation"]]],["expSum",,[[,,,,1,"File:FPHUB_mult.sv:expSum"]]]]);

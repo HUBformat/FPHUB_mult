@@ -1,0 +1,1 @@
+﻿NDFramePage.OnPageTitleLoaded("SystemVerilogModule:special_result_for_multiplier","special_result_for_multiplier");NDSummary.OnSummaryLoaded("SystemVerilogModule:special_result_for_multiplier",[["SystemVerilog","SystemVerilog"]],[["Modules","Module"]],[[23,0,0,"special_result_for_multiplier"]]);
