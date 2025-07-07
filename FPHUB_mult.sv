@@ -27,7 +27,8 @@ module FPHUB_mult #(
     input logic start,
     input  logic [E+M:0] X,
     input  logic [E+M:0] Y,
-    output logic [E+M:0] Z
+    output logic [E+M:0] Z,
+    output logic finish
 );
 
 /*
@@ -108,10 +109,12 @@ always_ff @(posedge clk or negedge rst_l) begin
 
     if(!rst_l) begin
         Z <= '0;
+        finish <= 1'b0;
     end
 
     else begin
         if(start) begin
+            finish <= 1'b1;
             Z[E+M] <= X[E+M] ^ Y[E+M];
             if (X_special_case == 0 && Y_special_case == 0) begin
                 // Select normalized mantissa bits based on overflow (MSB)
@@ -128,6 +131,7 @@ always_ff @(posedge clk or negedge rst_l) begin
             end
 
         end else begin
+            finish <= 1'b0;
             Z <= '0;
         end
         
