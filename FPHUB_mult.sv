@@ -105,34 +105,42 @@ always_comb begin
     multfull = {1'b1, X[M-1:0], 1'b1} * {1'b1, Y[M-1:0], 1'b1};
 end
 
+logic [31:0] Z_ff;
+logic finish_ff;
+
+ rvdff  #(32) zff               ( .clk(clk),       .rst_l(rst_l),     .din(Z_ff[31:0]), .dout(Z[31:0]));
+ rvdff  #(1) finishff               ( .clk(clk),   .rst_l(rst_l),         .din(finish_ff), .dout(finish));
+
 always_ff @(posedge clk or negedge rst_l) begin
 
     if(!rst_l) begin
+        Z_ff <= '0;
         Z <= '0;
         finish <= 1'b0;
+        finish_ff <= 1'b0;
     end
 
     else begin
         if(start) begin
-            finish <= 1'b1;
-            Z[E+M] <= X[E+M] ^ Y[E+M];
+            finish_ff <= 1'b1;
+            Z_ff[E+M] <= X[E+M] ^ Y[E+M];
             if (X_special_case == 0 && Y_special_case == 0) begin
                 // Select normalized mantissa bits based on overflow (MSB)
-                Z[M-1:0] <= (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
+                Z_ff[M-1:0] <= (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
 
                 // Adjust exponent if overflow occurred
                 if (multfull[2*(M+2)-1] == 1'b1) begin
-                    Z[E+M-1:M] <= expSum[E-1:0] + 1;
+                    Z_ff[E+M-1:M] <= expSum[E-1:0] + 1;
                 end else begin
-                    Z[E+M-1:M] <= expSum[E-1:0];
+                    Z_ff[E+M-1:M] <= expSum[E-1:0];
                 end
             end else begin
-                Z <= special_result;
+                Z_ff <= special_result;
             end
 
         end else begin
-            finish <= 1'b0;
-            Z <= '0;
+            finish_ff <= 1'b0;
+            Z_ff <= '0;
         end
         
     end
