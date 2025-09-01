@@ -22,13 +22,10 @@ module FPHUB_mult #(
     parameter int E = 8,
     parameter int special_case = 7
 )(
-    input logic clk,
-    input logic rst_l,
-    input logic start,
+    input  logic         start,
     input  logic [E+M:0] X,
     input  logic [E+M:0] Y,
-    output logic [E+M:0] Z,
-    output logic finish
+    output logic [E+M:0] Z
 );
 
 /*
@@ -66,7 +63,7 @@ This is consistent with the sign rules for multiplication of signed numbers.
 /* Variable: Z[E+M]
    Sign bit of the result. It is the XOR of the sign bits of X and Y.
 */
-//assign Z[E+M] = X[E+M] ^ Y[E+M];
+assign Z[E+M] = X[E+M] ^ Y[E+M];
 
 /*
 Section: Exponent Calculation
@@ -102,48 +99,26 @@ If either operand is special, the `special_result` is used instead of performing
 logic [2*(M+2)-1:0] multfull;
 
 always_comb begin
-    multfull = {1'b1, X[M-1:0], 1'b1} * {1'b1, Y[M-1:0], 1'b1};
-end
+    if (start) begin
+        multfull = {1'b1, X[M-1:0], 1'b1} * {1'b1, Y[M-1:0], 1'b1};
 
-logic [31:0] Z_ff;
-logic finish_ff;
+        if (X_special_case == 0 && Y_special_case == 0) begin
+            // Select normalized mantissa bits based on overflow (MSB)
+            Z[M-1:0] = (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
 
- rvdff  #(32) zff               ( .clk(clk),       .rst_l(rst_l),     .din(Z_ff[31:0]), .dout(Z[31:0]));
- rvdff  #(1) finishff               ( .clk(clk),   .rst_l(rst_l),         .din(finish_ff), .dout(finish));
-
-always_ff @(posedge clk or negedge rst_l) begin
-
-    if(!rst_l) begin
-        Z_ff <= '0;
-        Z <= '0;
-        finish <= 1'b0;
-        finish_ff <= 1'b0;
-    end
-
-    else begin
-        if(start) begin
-            finish_ff <= 1'b1;
-            Z_ff[E+M] <= X[E+M] ^ Y[E+M];
-            if (X_special_case == 0 && Y_special_case == 0) begin
-                // Select normalized mantissa bits based on overflow (MSB)
-                Z_ff[M-1:0] <= (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
-
-                // Adjust exponent if overflow occurred
-                if (multfull[2*(M+2)-1] == 1'b1) begin
-                    Z_ff[E+M-1:M] <= expSum[E-1:0] + 1;
-                end else begin
-                    Z_ff[E+M-1:M] <= expSum[E-1:0];
-                end
+            // Adjust exponent if overflow occurred
+            if (multfull[2*(M+2)-1] == 1'b1) begin
+                Z[E+M-1:M] = expSum[E-1:0] + 1;
             end else begin
-                Z_ff <= special_result;
+                Z[E+M-1:M] = expSum[E-1:0];
             end
-
         end else begin
-            finish_ff <= 1'b0;
-            Z_ff <= '0;
+            Z = special_result;
         end
-        
+    end else begin
+        Z = '0;
     end
+    
 end
 
 endmodule
