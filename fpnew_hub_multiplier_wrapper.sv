@@ -45,7 +45,7 @@ module fpnew_hub_multiplier_wrapper #(
 
   // Lógica de Handshake
   // in_ready_o está activo cuando la FPU está lista para recibir una nueva operación de multiplicación
-  assign in_ready_o = out_ready_i;
+  assign in_ready_o = 1'b1;
   // out_valid_o se activa cuando la entrada es válida y el op_i es de multiplicación
   assign out_valid_o = in_valid_i && out_ready_i;
 
