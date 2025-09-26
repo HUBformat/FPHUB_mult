@@ -63,7 +63,9 @@ This is consistent with the sign rules for multiplication of signed numbers.
 /* Variable: Z[E+M]
    Sign bit of the result. It is the XOR of the sign bits of X and Y.
 */
-assign Z[E+M] = X[E+M] ^ Y[E+M];
+logic Z_sign;
+assign Z_sign = X[E+M] ^ Y[E+M];
+//assign Z[E+M] = X[E+M] ^ Y[E+M];
 
 /*
 Section: Exponent Calculation
@@ -98,20 +100,25 @@ If either operand is special, the `special_result` is used instead of performing
 */
 logic [2*(M+2)-1:0] multfull;
 
+logic [M-1:0] Z_mantissa; // Mantissa part of the result
+logic [E-1:0] Z_exponent; // Exponent part of the result
+
 always_comb begin
     if (start) begin
         multfull = {1'b1, X[M-1:0], 1'b1} * {1'b1, Y[M-1:0], 1'b1};
 
         if (X_special_case == 0 && Y_special_case == 0) begin
             // Select normalized mantissa bits based on overflow (MSB)
-            Z[M-1:0] = (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
+            Z_mantissa = (multfull[2*(M+2)-1] == 1'b1) ? multfull[2*(M+2)-2 : M+3] : multfull[2*(M+2)-3:M+2];
 
             // Adjust exponent if overflow occurred
             if (multfull[2*(M+2)-1] == 1'b1) begin
-                Z[E+M-1:M] = expSum[E-1:0] + 1;
+                Z_exponent = expSum[E-1:0] + 1;
             end else begin
-                Z[E+M-1:M] = expSum[E-1:0];
+                Z_exponent = expSum[E-1:0];
             end
+            Z = {Z_sign, Z_exponent, Z_mantissa};
+
         end else begin
             Z = special_result;
         end
