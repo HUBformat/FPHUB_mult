@@ -40,8 +40,8 @@ module fpnew_hub_multiplier_wrapper #(
 
   // Mapeo de los operandos del FPnew al formato de HUB
   // El FPnew usa op[0] y op[1] para la multiplicación
-  assign hub_X_input = operands_i[1];
-  assign hub_Y_input = operands_i[2];
+  assign hub_X_input = operands_i[0];
+  assign hub_Y_input = operands_i[1];
 
   // Lógica de Handshake
   // in_ready_o está activo cuando la FPU está lista para recibir una nueva operación de multiplicación
