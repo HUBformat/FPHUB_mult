@@ -65,7 +65,7 @@ This ensures the result is properly scaled.
     Holds the sum of the two input exponents minus the bias (2^(E-1)).
 */
 logic [E+1:0] expSum, expSum_norm;  // Exponent result with one extra bit to handle overflow
-logic [E-1] Z_exponent;
+logic [E-1:0] Z_exponent;
 
 logic exp_overflow, exp_underflow;
 
@@ -90,7 +90,7 @@ If either operand is special, the `special_result` is used instead of performing
     Total width: 2 * (M + 2)
 */
 logic [2*(M+2)-1:0] multfull;
-logic [M-1] Z_mantissa;
+logic [M-1:0] Z_mantissa;
 
 always_comb begin
     multfull = {1'b1, X[M-1:0], 1'b1} * {1'b1, Y[M-1:0], 1'b1};
@@ -121,12 +121,12 @@ always_comb begin
         
         Z_exponent = expSum_norm[E-1:0];
 
-        if (exp_overflow) begin
-            Z_exponent = {E{1'b1}};
-            Z_mantissa = {M{1'b1}};
-        end else if (exp_underflow) begin
+        if (exp_underflow) begin
             Z_exponent = {E{1'b0}};
             Z_mantissa = {M{1'b0}};
+        end else if (exp_overflow) begin
+            Z_exponent = {E{1'b1}};
+            Z_mantissa = {M{1'b1}};
         end
 
         Z = {Z_sign, Z_exponent, Z_mantissa};

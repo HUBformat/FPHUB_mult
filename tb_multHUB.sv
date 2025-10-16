@@ -11,7 +11,7 @@ module tb_multHUB;
   logic [E+M:0] Z;       // Salida
 
   // Instancia del módulo multHUB
-  multHUB #(M, E) uut (
+  FPHUB_mult #(M, E) uut (
     .X(X),
     .Y(Y),
     .Z(Z)

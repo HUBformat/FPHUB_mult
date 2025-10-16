@@ -1,8 +1,13 @@
 probando_adder.sv
 *.log
 generahtml
+work/
 doc/html/*
 doc/README.html
 doc/nd-config/README.html
 doc/nd-config/Working Data
 *:Zone.Identifier
+FPHUB_multiplier.mpf
+FPHUB_multiplier.cr.mti
+tb_multHUB.sv.bak
+vsim.wlf
