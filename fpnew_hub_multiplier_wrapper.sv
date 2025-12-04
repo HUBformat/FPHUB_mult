@@ -58,10 +58,10 @@ module fpnew_hub_multiplier_wrapper #(
   logic is_zero_output;
 
   // Comprueba si la salida es Infinito (todos los bits del exponente y la mantisa son 1)
-  assign is_inf_output = (hub_Z_output[E+M-1:0] == {(E+M){1'b1}});
+  assign is_inf_output  = (hub_Z_output == 32'h7FFFFFFF || hub_Z_output == 32'hFFFFFFFF);
 
   // Comprueba si la salida es Cero (todos los bits del exponente y la mantisa son 0)
-  assign is_zero_output = (hub_Z_output[E+M-1:0] == {(E+M){1'b0}});
+  assign is_zero_output = (hub_Z_output == 32'h00000000 || hub_Z_output == 32'h80000000);
 
   // Asignación de flags de estado (simplificada)
   assign status_o.NV = 1'b0; // No se detectan operaciones inválidas por la multiplicación
