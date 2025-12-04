@@ -63,11 +63,18 @@ module fpnew_hub_multiplier_wrapper #(
   // Comprueba si la salida es Cero (todos los bits del exponente y la mantisa son 0)
   assign is_zero_output = (hub_Z_output == 32'h00000000 || hub_Z_output == 32'h80000000);
 
-  // Asignación de flags de estado (simplificada)
-  assign status_o.NV = 1'b0; // No se detectan operaciones inválidas por la multiplicación
-  assign status_o.DZ = 1'b0; // No aplica para multiplicación
-  assign status_o.OF = is_inf_output;
-  assign status_o.UF = is_zero_output;
-  assign status_o.NX = 1'b0; // Pendiente de implementar
+  always_comb begin
+    // Valor por defecto: todo a 0 para evitar 'X'
+    status_o = '0; 
+    
+    // Solo calculamos flags si la salida es válida
+    if (out_valid_o) begin
+      status_o.NV = 1'b0;
+      status_o.DZ = 1'b0;
+      status_o.OF = is_inf_output; // Si hub_Z es X, esto será X, pero solo cuando valid es 1
+      status_o.UF = is_zero_output;
+      status_o.NX = 1'b0;
+    end
+  end
 
 endmodule
