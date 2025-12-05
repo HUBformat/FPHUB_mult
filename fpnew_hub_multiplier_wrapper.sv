@@ -24,44 +24,44 @@ module fpnew_hub_multiplier_wrapper #(
 );
 
   // Señales internas para tu módulo FPHUB_mult
-  logic [E+M:0] hub_X_input;
-  logic [E+M:0] hub_Y_input;
-  logic [E+M:0] hub_Z_output;
+  logic [E+M:0] hub_X;
+  logic [E+M:0] hub_Y;
+  logic [E+M:0] hub_Z;
 
-  // Instancia de tu módulo FPHUB_mult sin modificar
   FPHUB_mult #(
     .M(M),
     .E(E)
   ) i_hub_multiplier (
-    .X(hub_X_input),
-    .Y(hub_Y_input),
-    .Z(hub_Z_output)
+    .X(hub_X),
+    .Y(hub_Y),
+    .Z(hub_Z)
   );
 
   // Mapeo de los operandos del FPnew al formato de HUB
   // El FPnew usa op[0] y op[1] para la multiplicación
-  assign hub_X_input = operands_i[0];
-  assign hub_Y_input = operands_i[1];
+  assign hub_X = operands_i[0];
+  assign hub_Y = operands_i[1];
 
   // Lógica de Handshake
   // in_ready_o está activo cuando la FPU está lista para recibir una nueva operación de multiplicación
   assign in_ready_o = 1'b1;
-  // out_valid_o se activa cuando la entrada es válida y el op_i es de multiplicación
+  // out_valid_o se activa cuando la entrada es válida
   assign out_valid_o = in_valid_i && out_ready_i;
 
   // El resultado de la multiplicación se asigna directamente a la salida
-  assign result_o = hub_Z_output;
+  assign result_o = hub_Z;
 
-  // Lógica de flags de estado de FPnew (status_t)
-  // Basado en el formato de HUB
-  logic is_inf_output;
-  logic is_zero_output;
+  // Señales para casos especiales
+  logic x_is_zero, y_is_zero, z_is_zero;
+  logic x_is_inf,  y_is_inf, z_is_inf;
 
-  // Comprueba si la salida es Infinito (todos los bits del exponente y la mantisa son 1)
-  assign is_inf_output  = (hub_Z_output == 32'h7FFFFFFF || hub_Z_output == 32'hFFFFFFFF);
-
-  // Comprueba si la salida es Cero (todos los bits del exponente y la mantisa son 0)
-  assign is_zero_output = (hub_Z_output == 32'h00000000 || hub_Z_output == 32'h80000000);
+  // Comprobaciones para activación de flags de estado
+  assign z_is_inf       = (hub_Z[E+M-1:0] == '1);
+  assign z_is_zero      = (hub_Z[E+M-1:0] == '0);
+  assign x_is_zero      = (hub_X[E+M-1:0] == '0);
+  assign y_is_zero      = (hub_Y[E+M-1:0] == '0);
+  assign x_is_inf       = (hub_X[E+M-1:0] == '1);
+  assign y_is_inf       = (hub_Y[E+M-1:0] == '1);
 
   always_comb begin
     // Valor por defecto: todo a 0 para evitar 'X'
@@ -69,11 +69,11 @@ module fpnew_hub_multiplier_wrapper #(
     
     // Solo calculamos flags si la salida es válida
     if (out_valid_o) begin
-      status_o.NV = 1'b0;
+      status_o.NV = ((x_is_zero && y_is_inf) || (x_is_inf && y_is_zero));
       status_o.DZ = 1'b0;
-      status_o.OF = is_inf_output; // Si hub_Z es X, esto será X, pero solo cuando valid es 1
-      status_o.UF = is_zero_output;
-      status_o.NX = 1'b0;
+      status_o.OF = (z_is_inf && !x_is_inf && !y_is_inf); // Si hub_Z es X, esto será X, pero solo cuando valid es 1
+      status_o.UF = (z_is_zero && !x_is_zero && !y_is_zero); // Si z=0 y x e y no son cero y si son diferentes
+      status_o.NX = 1'b1;
     end
   end
 
